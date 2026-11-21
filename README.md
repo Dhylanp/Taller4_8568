@@ -203,6 +203,3 @@ Repositorio con ramas `main` y `develop`; cada funcionalidad en su rama `feature
 | Aprendizaje | Por qué la validación de conflictos va en una transacción, por qué la auditoría va en MongoDB y el estado actual en SQL, y por qué la autorización se valida en el backend y no solo en el menú |
 
 > Cada integrante debe poder explicar el código en la defensa.
-
-## App móvil (Hito 4)
-La app React Native (Expo) está en la carpeta [`mobile/`](mobile/README.md) y consume esta misma API. Instrucciones de ejecución, endpoints usados y configuración de la dirección de la API en `mobile/README.md`.
