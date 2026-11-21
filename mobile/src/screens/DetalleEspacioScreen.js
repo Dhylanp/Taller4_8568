@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Chip, Estado, estilos } from '../components/ui';
+import { Boton, Chip, Estado, estilos } from '../components/ui';
 import { disponibilidad, obtenerEspacio } from '../services/espacios';
 import { hora, proximosDias } from '../utils/fechas';
 import { colores } from '../config';
 
 const DIAS = proximosDias(7);
 
-export default function DetalleEspacioScreen({ route }) {
+export default function DetalleEspacioScreen({ route, navigation }) {
   const { id } = route.params;
   const [espacio, setEspacio] = useState(null);
   const [fecha, setFecha] = useState(DIAS[0].valor);
@@ -58,6 +58,8 @@ export default function DetalleEspacioScreen({ route }) {
             <Text key={o.id} style={{ color: colores.error }}>Ocupado {hora(o.inicio)} – {hora(o.fin)} ({o.estado})</Text>
           )))}
       </View>
+      <Boton titulo="Reservar este espacio" deshabilitado={!espacio.disponible}
+        onPress={() => navigation.navigate('Reservar', { espacioId: id })} />
     </ScrollView>
   );
 }
