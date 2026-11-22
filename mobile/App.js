@@ -11,16 +11,19 @@ import EspaciosScreen from './src/screens/EspaciosScreen';
 import DetalleEspacioScreen from './src/screens/DetalleEspacioScreen';
 import ReservarScreen from './src/screens/ReservarScreen';
 import MisReservasScreen from './src/screens/MisReservasScreen';
+import SolicitudesScreen from './src/screens/SolicitudesScreen';
 import { colores } from './src/config';
 
 const Tabs = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function Principal() {
+  const { usuario } = useAuth();
   return (
     <Tabs.Navigator screenOptions={{ tabBarActiveTintColor: colores.primario }}>
       <Tabs.Screen name="Espacios" component={EspaciosScreen} />
       <Tabs.Screen name="MisReservas" component={MisReservasScreen} options={{ title: 'Mis reservas' }} />
+      {usuario.rol === 'ADMIN' && <Tabs.Screen name="Solicitudes" component={SolicitudesScreen} />}
       <Tabs.Screen name="Perfil" component={PerfilScreen} />
     </Tabs.Navigator>
   );
