@@ -3,7 +3,7 @@ import { ScrollView, Text, TextInput } from 'react-native';
 import { Aviso, Boton, Chip, estilos } from '../components/ui';
 import { disponibilidad } from '../services/espacios';
 import { crearReserva } from '../services/reservas';
-import { hora, proximosDias } from '../utils/fechas';
+import { ahoraChile, hora, proximosDias } from '../utils/fechas';
 
 const DIAS = proximosDias(7);
 const HORAS = Array.from({ length: 13 }, (_, i) => 8 + i); // 08:00 a 20:00
@@ -25,6 +25,10 @@ export default function ReservarScreen({ route, navigation }) {
     disponibilidad(espacioId, fecha).then((d) => setOcupado(d.ocupado)).catch((e) => setError(e.message));
   }, [espacioId, fecha]);
 
+  // Hoy no se pueden elegir horas que ya pasaron (el backend también lo valida)
+  const ahora = ahoraChile();
+  const pasada = (h) => fecha === ahora.fecha && h <= ahora.hora;
+
   // Un tramo [h, h+dur) choca si se solapa con alguna reserva activa de ese día.
   const choca = (h, dur) => ocupado.some((o) => {
     const oi = Number(hora(o.inicio).slice(0, 2)) + Number(hora(o.inicio).slice(3)) / 60;
@@ -34,6 +38,7 @@ export default function ReservarScreen({ route, navigation }) {
 
   async function enviar() {
     if (inicio === null) return setError('Elige la hora de inicio');
+    if (pasada(inicio)) return setError('Esa hora ya pasó, elige una posterior')
     if (inicio + duracion > 24) return setError('La reserva debe terminar el mismo día');
     if (choca(inicio, duracion)) return setError('Ese tramo ya está ocupado, elige otro horario');
     setError(''); setEnviando(true);
@@ -60,10 +65,10 @@ export default function ReservarScreen({ route, navigation }) {
         {DURACIONES.map((d) => <Chip key={d} texto={`${d} h`} activo={duracion === d} onPress={() => setDuracion(d)} />)}
       </ScrollView>
 
-      <Text style={estilos.etiqueta}>Hora de inicio (las ocupadas aparecen deshabilitadas)</Text>
+      <Text style={estilos.etiqueta}>Hora de inicio (ocupadas o pasadas aparecen deshabilitadas)</Text>
       <ScrollView horizontal={false} contentContainerStyle={estilos.fila}>
         {HORAS.map((h) => (
-          <Chip key={h} texto={`${pad(h)}:00`} activo={inicio === h} deshabilitado={choca(h, duracion)} onPress={() => setInicio(h)} />
+          <Chip key={h} texto={`${pad(h)}:00`} activo={inicio === h} deshabilitado={pasada(h) || choca(h, duracion)} onPress={() => setInicio(h)} />
         ))}
       </ScrollView>
 
