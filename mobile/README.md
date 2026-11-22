@@ -18,8 +18,11 @@ Web React (:5173)   App móvil Expo
 | Ver equipamiento y disponibilidad por día | Detalle de espacio |
 | Solicitar una reserva (fecha, duración, hora; horas ocupadas deshabilitadas) | Reservar |
 | Consultar reservas propias y su estado; cancelar una reserva | Mis reservas |
+| **Administrador:** ver solicitudes de todos los usuarios, aprobar, rechazar o cancelar (pestaña visible solo con rol ADMIN) | Solicitudes |
 
 Estados de interfaz: carga, error con botón "Reintentar", lista vacía, mensajes de confirmación y validaciones (formato de correo, campos obligatorios, tramo ocupado, errores del backend como "Conflicto de horario" o "No se puede reservar en el pasado").
+
+Guía paso a paso para probarla en el celular: [`docs/GUIA_PRUEBA_MOVIL.md`](../docs/GUIA_PRUEBA_MOVIL.md).
 
 ## Cómo ejecutarla
 Requisitos: Node 18+ y la API del Hito 3 corriendo (`docker compose up -d --build` en la raíz del repo).
@@ -52,7 +55,7 @@ mobile/
   src/services/          api.js (único módulo HTTP), auth.js, espacios.js, reservas.js
   src/context/           AuthContext (sesión)
   src/components/ui.js   botón, chips, insignias de estado, pantallas de carga/error/vacío
-  src/screens/           Login, Espacios, DetalleEspacio, Reservar, MisReservas, Perfil
+  src/screens/           Login, Espacios, DetalleEspacio, Reservar, MisReservas, Solicitudes (admin), Perfil
   src/utils/fechas.js    manejo de fechas y horas
 ```
 
@@ -65,7 +68,9 @@ mobile/
 | `GET /espacios/:id/disponibilidad?fecha=` | Tramos ocupados del día |
 | `POST /reservas` | Solicitar reserva (el backend valida conflictos y pasado) |
 | `GET /reservas/mias` | Reservas del usuario |
-| `PATCH /reservas/:id/cancelar` | Cancelar reserva propia |
+| `PATCH /reservas/:id/cancelar` | Cancelar reserva propia (o cualquiera si es ADMIN) |
+| `GET /reservas?estado=` | (ADMIN) Solicitudes de todos los usuarios |
+| `PATCH /reservas/:id/aprobar` y `/rechazar` | (ADMIN) Resolver solicitudes |
 
 Las reglas de negocio (conflictos, estados, auditoría en MongoDB) están en el backend; la app solo valida lo básico antes de enviar.
 

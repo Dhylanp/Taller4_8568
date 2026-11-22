@@ -38,7 +38,7 @@ export default function ReservarScreen({ route, navigation }) {
 
   async function enviar() {
     if (inicio === null) return setError('Elige la hora de inicio');
-    if (pasada(inicio)) return setError('Esa hora ya pasó, elige una posterior')
+    if (pasada(inicio)) return setError('Esa hora ya pasó, elige una posterior');
     if (inicio + duracion > 24) return setError('La reserva debe terminar el mismo día');
     if (choca(inicio, duracion)) return setError('Ese tramo ya está ocupado, elige otro horario');
     setError(''); setEnviando(true);
