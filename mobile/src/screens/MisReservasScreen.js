@@ -1,15 +1,51 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, Platform, Text, View } from 'react-native';
+import { Alert, FlatList, Image, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { Aviso, Boton, Estado, Insignia, estilos } from '../components/ui';
 import { cancelarReserva, misReservas } from '../services/reservas';
+import { useAuth } from '../context/AuthContext';
 import { rango } from '../utils/fechas';
+import { urlQR } from '../utils/qr';
 
 const confirmar = (texto, alAceptar) => {
   if (Platform.OS === 'web') { if (window.confirm(texto)) alAceptar(); return; }
   Alert.alert('Confirmar', texto, [{ text: 'No' }, { text: 'Sí, cancelar', style: 'destructive', onPress: alAceptar }]);
 };
 
+// QR de la reserva aprobada (API pública goQR.me): miniatura en la tarjeta y versión grande al tocarla.
+function QRReserva({ reserva, nombre }) {
+  const [abierto, setAbierto] = useState(false);
+  const [falla, setFalla] = useState(false);
+  return (
+    <View style={{ marginTop: 10 }}>
+      {falla ? (
+        <View>
+          <Text style={estilos.suave}>No se pudo cargar el QR. Revisa que el teléfono tenga internet.</Text>
+          <Boton titulo="Reintentar QR" variante="borde" onPress={() => setFalla(false)} />
+        </View>
+      ) : (
+        <Pressable onPress={() => setAbierto(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Image source={{ uri: urlQR(reserva, nombre, 150) }} style={{ width: 90, height: 90 }}
+            accessibilityLabel="Código QR de la reserva" onError={() => setFalla(true)} />
+          <Text style={[estilos.suave, { flex: 1 }]}>Toca para ampliar el QR de tu reserva</Text>
+        </Pressable>
+      )}
+      <Modal visible={abierto} transparent animationType="fade" onRequestClose={() => setAbierto(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, alignItems: 'center' }}>
+            <Text style={estilos.titulo}>QR de tu reserva</Text>
+            <Text style={estilos.suave}>{reserva.espacio.nombre} · {rango(reserva.inicio, reserva.fin)}</Text>
+            <Image source={{ uri: urlQR(reserva, nombre, 400) }} style={{ width: 260, height: 260, marginVertical: 12 }}
+              accessibilityLabel="Código QR de la reserva" />
+            <Boton titulo="Cerrar" variante="borde" onPress={() => setAbierto(false)} />
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 export default function MisReservasScreen({ route }) {
+  const { usuario } = useAuth();
   const [reservas, setReservas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -53,6 +89,7 @@ export default function MisReservasScreen({ route }) {
             <Text style={estilos.suave}>{r.espacio.edificio.nombre}</Text>
             <Text style={{ marginTop: 6 }}>{rango(r.inicio, r.fin)}</Text>
             {!!r.motivo && <Text style={estilos.suave}>Motivo: {r.motivo}</Text>}
+            {r.estado === 'APROBADA' && <QRReserva reserva={r} nombre={r.usuario?.nombre ?? usuario.nombre} />}
             {(r.estado === 'PENDIENTE' || r.estado === 'APROBADA') && (
               <Boton titulo="Cancelar reserva" variante="peligro" cargando={cancelando === r.id} onPress={() => cancelar(r)} />
             )}
